@@ -33,20 +33,19 @@ public class AxonConfigurationTest {
 	}
 
 
-	protected <T extends EventSourcedAggregateRoot<?>> Closeable subscribeTo(
-			Class<T> clazz,
-			ApplicationContext applicationContext) {
+	protected <T extends EventSourcedAggregateRoot<?>> Closeable subscribeTo(Class<T> clazz, ApplicationContext applicationContext) {
 		EventBus eventBus = applicationContext.getBean(EventBus.class);
 		EventStore eventStore = applicationContext.getBean(EventStore.class);
 		CommandBus cBus = applicationContext.getBean(CommandBus.class);
 
-		EventSourcingRepository<T> repository = eventSourcingRepository(eventStore, clazz, eventBus);
+		EventSourcingRepository<T> repository = new EventSourcingRepository<>(clazz, eventStore);
+		repository.setEventBus(eventBus);
 
 		AggregateAnnotationCommandHandler<T> handler = new AggregateAnnotationCommandHandler<>(
 				clazz,
 				repository,
 				new AnnotationCommandTargetResolver(),
-				createInjector(clazz, applicationContext));
+				springInjector(clazz, applicationContext));
 
 		List<Runnable> unsubscriptions = new ArrayList<>();
 
@@ -58,16 +57,10 @@ public class AxonConfigurationTest {
 		return () -> unsubscriptions.forEach(Runnable::run);
 	}
 
-	public static ParameterResolverFactory createInjector(Class clazz, ApplicationContext applicationContext) {
+	public static ParameterResolverFactory springInjector(Class clazz, ApplicationContext applicationContext) {
 		SpringBeanParameterResolverFactory factory = new SpringBeanParameterResolverFactory();
 		factory.setApplicationContext(applicationContext);
 		return MultiParameterResolverFactory.ordered(ClasspathParameterResolverFactory.forClass(clazz), factory);
 	}
 
-	public static <T extends EventSourcedAggregateRoot<?>> EventSourcingRepository<T> eventSourcingRepository(
-			EventStore eventStore, Class<T> clazz, EventBus eventBus) {
-		EventSourcingRepository<T> repository = new EventSourcingRepository<>(clazz, eventStore);
-		repository.setEventBus(eventBus);
-		return repository;
-	}
 }
