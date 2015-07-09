@@ -6,6 +6,8 @@ import org.axonframework.commandhandling.SimpleCommandBus;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.commandhandling.gateway.DefaultCommandGateway;
 import org.axonframework.domain.IdentifierFactory;
+import org.axonframework.eventhandling.EventBus;
+import org.axonframework.eventhandling.SimpleEventBus;
 import org.axonframework.eventstore.EventStore;
 import org.axonframework.eventstore.fs.FileSystemEventStore;
 import org.axonframework.eventstore.fs.SimpleEventFileResolver;
@@ -26,6 +28,11 @@ public class AxonConfiguration {
 	@Bean
 	public SimpleCommandBus commandBus() {
 		return new SimpleCommandBus();
+	}
+
+	@Bean
+	public EventBus eventBus() {
+		return new SimpleEventBus();
 	}
 
 
